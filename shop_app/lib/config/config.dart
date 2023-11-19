@@ -1,4 +1,4 @@
-const url = 'http://192.168.1.9:3000';
+const url = 'http://192.168.88.101:3000';
 
 const signup = "$url/api/signup";
 const signin = "$url/api/signin";
@@ -61,3 +61,8 @@ const apiaddCategory = "$url/create-categories";
 const apideleteCategory = "$url/delete-categories";
 
 const apiUpdateCategory = "$url/api/update-categories";
+
+const apiCatePercent = "$url/api/categoriesPercentage";
+
+
+

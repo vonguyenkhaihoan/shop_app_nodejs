@@ -67,30 +67,77 @@ router.get('/admin/api/total-revenue', AdminMidd,AdminController.totalRevenu);
 //tong so san pham
 router.get('/admin/total-product', AdminController.totalProduct);
 
-router.get('/api/categoriesPercentage', async (req, res) => {
+router.get('/api/categoriesPercentage',AdminController.categoriesPercentage);
+
+router.get('/orders-per-month', async (req, res) => {
   try {
-    const categories = await CategoryModel.find();
-    const totalProducts = await ProductModel.countDocuments();
+    const currentYear = new Date().getFullYear();
 
-    const percentageData = categories.map(async (category) => {
-      const categoryProducts = await ProductModel.countDocuments({ category: category.name });
-      const percentage = (categoryProducts / totalProducts) * 100;
-      return { name: category.name, percentage };
+    // Truy vấn cơ sở dữ liệu để lấy số đơn hàng theo tháng
+    const ordersByMonth = await OrderModel.aggregate([
+      {
+        $match: {
+          orderedAt: {
+            $gte: new Date(`${currentYear}-01-01`).getTime(),
+            $lt: new Date(`${currentYear + 1}-01-01`).getTime(),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: { $toDate: '$orderedAt' } },
+          totalOrders: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Tạo một mảng 12 phần tử (mỗi tháng) và gán giá trị 0 cho các tháng không có đơn hàng
+    const monthlyOrders = Array.from({ length: 12 }, (_, index) => {
+      const monthData = ordersByMonth.find(item => item._id === index + 1);
+      return monthData ? monthData.totalOrders : 0;
     });
 
-    Promise.all(percentageData).then((result) => {
-      res.json(result);
+    res.json({ success: true, data: monthlyOrders });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
+
+
+router.get('/order-statistics', async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+
+    const monthlyOrderCounts = await OrderModel.aggregate([
+      {
+        $match: {
+          orderedAt: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lt: new Date(`${currentYear + 1}-01-01`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$orderedAt' }, // Remove $toDate here
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const result = Array.from({ length: 12 }, (_, index) => {
+      const month = index + 1;
+      const count = monthlyOrderCounts.find((item) => item._id === month)?.count || 0;
+      return { month, count };
     });
+
+    res.json(result);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
-
-
-
-
 
 
 

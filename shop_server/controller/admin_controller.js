@@ -1,6 +1,8 @@
 const OrderModel = require('../model/order_model');
 const {ProductModel} = require("../model/product_model");
 const UserModel = require('../model/user_model');
+const CategoryModel =require('../model/catyerogy_model.js');
+
 
 
 
@@ -248,6 +250,50 @@ class AdmminController {
      async totalOrder (req, res)  {
       let totalOrders = await getTotalOrders();
       res.status(200).json({ totalOrders });
+    }
+
+    //phần trăm danh muc
+    async categoriesPercentage (req, res)  {
+      try {
+        const categories = await CategoryModel.find();
+        const totalProducts = await ProductModel.countDocuments();
+    
+        const percentageData = categories.map(async (category) => {
+          const categoryProducts = await ProductModel.countDocuments({ category: category.name });
+          const percentage = (categoryProducts / totalProducts) * 100;
+          return { name: category.name, percentage };
+        });
+    
+        Promise.all(percentageData).then((result) => {
+          res.json(result);
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    }
+
+    async  categorySalesTotal(req, res) {
+      try {
+        const categories = await CategoryModel.find();
+        
+        const salesData = await Promise.all(categories.map(async (category) => {
+          // Lấy tất cả đơn hàng chứa sản phẩm thuộc danh mục đó
+          const orders = await OrderModel.find({ "products.product.category": category.name });
+    
+          // Tính tổng số tiền bán được cho từng danh mục
+          const categoryTotalSales = orders.reduce((totalSales, order) => {
+            return totalSales + order.totalPrice;
+          }, 0);
+    
+          return { name: category.name, totalSales: categoryTotalSales };
+        }));
+    
+        res.json(salesData);
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
     }
    
 

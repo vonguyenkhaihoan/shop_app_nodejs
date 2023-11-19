@@ -1,13 +1,13 @@
 import 'package:shop_app/common/widgets/loader.dart';
 import 'package:shop_app/features/admin/models/sales.dart';
 import 'package:shop_app/features/admin/services/admin_services.dart';
+import 'package:shop_app/features/admin/widgets/bartCater.dart';
+import 'package:shop_app/features/admin/widgets/bartChart_CatPercen.dart';
 import 'package:shop_app/features/admin/widgets/category_products_chart.dart';
-import 'package:shop_app/features/admin/widgets/chartpie.dart';
 import 'package:shop_app/features/admin/widgets/detail_card.dart';
 import 'package:charts_flutter_new/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
-import 'package:shop_app/features/admin/widgets/pichart_.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -83,65 +83,107 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             onRefresh: refresh,
             child: Scaffold(
               body: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      topRight: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
                     ),
-                    // thông tinh tổng quat
-                    Container(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          detailCart(
-                            count: "$totalOrder",
-                            title: "Total Order",
-                          ),
-                          detailCart(
-                            count: "\$ $totatRevenu",
-                            title: "Total Revenue",
-                          ),
-                          detailCart(
-                            count: " $totatProduct",
-                            title: "total product",
-                          )
-                        ],
+                    color: Colors.white,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Thống kế',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    SizedBox(
-                      height: 20,
-                    ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      // thông tinh tổng quat
+                      Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            detailCart(
+                              count: "$totalOrder",
+                              title: "Total Order",
+                            ),
+                            detailCart(
+                              count: "\$ $totatRevenu",
+                              title: "Total Revenue",
+                            ),
+                            detailCart(
+                              count: " $totatProduct",
+                              title: "total product",
+                            )
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
 
-                    Text(
-                      '\$$totalSales',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    SizedBox(
-                      height: 250,
-                      child: CategoryProductsChart(
-                        seriesList: [
-                          charts.Series(
-                              id: 'Sales',
-                              data: earnings!,
-                              domainFn: (Sales sales, _) => sales.label,
-                              measureFn: (Sales sales, _) => sales.earning)
-                        ],
-                      ),
-                    ),
+                      // Text(
+                      //   '\$$totalSales',
+                      //   style: const TextStyle(
+                      //     fontSize: 20,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      // //sơ đồ
+                      // SizedBox(
+                      //   height: 250,
+                      //   child: CategoryProductsChart(
+                      //     seriesList: [
+                      //       charts.Series(
+                      //           id: 'Sales',
+                      //           data: earnings!,
+                      //           domainFn: (Sales sales, _) => sales.label,
+                      //           measureFn: (Sales sales, _) => sales.earning)
+                      //     ],
+                      //   ),
+                      // ),
 
-                    SizedBox(
-                      height: 10,
-                    ),
-                    SizedBox(
-                      width: 300, // Đặt một chiều rộng hợp lý
-                      height: 300, // Đặt một chiều cao hợp lý
-                      child: PieChartSample(),
-                    ),
-                    Piacharts(),
-                  ],
+                      SizedBox(
+                        height: 20,
+                      ),
+
+                      //bieu do phan trăm
+                      Text(
+                        'Thống kế phần trăm danh mục',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 300, // Đặt một chiều cao hợp lý
+                        child: BarChartCatPercent(),
+                      ),
+
+                      SizedBox(
+                        height: 20,
+                      ),
+
+                      //bieu do don hang theo tung thang
+                      Text(
+                        'Thống kế đơn hàng theo từng tháng',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 300, // Đặt một chiều cao hợp lý
+                        child: MonthlyOrdersChart(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

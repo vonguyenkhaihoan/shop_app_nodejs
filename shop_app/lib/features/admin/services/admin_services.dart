@@ -5,6 +5,7 @@ import 'package:shop_app/config/config.dart';
 import 'package:shop_app/constains/error_handling.dart';
 import 'package:shop_app/constains/utils.dart';
 import 'package:shop_app/features/admin/models/sales.dart';
+import 'package:shop_app/features/admin/widgets/bartChart_CatPercen.dart';
 import 'package:shop_app/models/category_model.dart';
 import 'package:shop_app/models/order_model.dart';
 import 'package:shop_app/models/product_model.dart';
@@ -453,6 +454,18 @@ class AdminServices {
       showSnackBar(context, e.toString(), Colors.red[300]!);
     }
     return Future.value(totalProduct);
+  }
+
+  //llay phân trăm danh mục có so luong san pham trong tong san lương
+  static Future<List<CategoryData>> fetchData() async {
+    final response = await http.get(Uri.parse(apiCatePercent));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((item) => CategoryData.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load data');
+    }
   }
 
   //Update admin profile
