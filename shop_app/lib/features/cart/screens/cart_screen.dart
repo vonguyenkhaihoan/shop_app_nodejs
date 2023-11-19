@@ -20,6 +20,8 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
+  final CartServices cartServices = CartServices();
+
   // ham dieu huong tim kiem
   void navigateToSearchScreen(String query) {
     Navigator.pushNamed(context, SearchScreen.routeName, arguments: query);
@@ -30,8 +32,6 @@ class _CartScreenState extends State<CartScreen> {
     Navigator.pushNamed(context, AddressScreen.routeName,
         arguments: sum.toString());
   }
-
-  final CartServices cartServices = CartServices();
 
   //ham xoa tat ca san pham co trong gio hang
   void RemoveAllCart() {
@@ -137,11 +137,7 @@ class _CartScreenState extends State<CartScreen> {
               text: 'Proceed to Buy (${user.cart.length} items)',
               // onTap: ()=>navigateToAddressScreen(sum),
               onTap: () {
-                if (user.cart.isNotEmpty) {
-                  return navigateToAddressScreen(sum);
-                } else {
-                  return null;
-                }
+                user.cart.isNotEmpty ? navigateToAddressScreen(sum) : null;
               },
               color: Colors.yellow[600],
             ),
@@ -152,11 +148,7 @@ class _CartScreenState extends State<CartScreen> {
             child: CustomButton(
               text: 'Remove all (${user.cart.length} items)',
               onTap: () {
-                if (user.cart.isNotEmpty) {
-                  RemoveAllCart();
-                } else {
-                  return null;
-                }
+                user.cart.isNotEmpty ? RemoveAllCart() : null;
               },
               color: Colors.yellow[600],
             ),

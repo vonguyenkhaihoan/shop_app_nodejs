@@ -1,24 +1,18 @@
-import 'dart:math';
-
-import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
-import 'package:charts_flutter_new/flutter.dart' as charts;
-
-import 'package:http/http.dart' as http;
-import 'package:shop_app/config/config.dart';
-import 'package:shop_app/features/admin/services/admin_services.dart';
 import 'dart:convert';
 
-import 'package:shop_app/features/admin/widgets/indicat.dart';
+import 'package:flutter/material.dart';
+import 'package:charts_flutter_new/flutter.dart' as charts;
+import 'package:shop_app/config/config.dart';
+import 'package:http/http.dart' as http;
 
-class BarChartCatPercent extends StatefulWidget {
-  const BarChartCatPercent({Key? key}) : super(key: key);
+class TotalRevenueChart extends StatefulWidget {
+  const TotalRevenueChart({Key? key}) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => BarChartCatPercentState();
+  State<StatefulWidget> createState() => TotalRevenueChartState();
 }
 
-class BarChartCatPercentState extends State<BarChartCatPercent> {
+class TotalRevenueChartState extends State<TotalRevenueChart> {
   List<CategoryData> categoryData = [];
 
   @override
@@ -27,30 +21,30 @@ class BarChartCatPercentState extends State<BarChartCatPercent> {
     fetchData();
   }
 
-  // Future<void> fetchData() async {
-  //   final response = await http
-  //       .get(Uri.parse(apiCatePercent));
-
-  //   if (response.statusCode == 200) {
-  //     final List<dynamic> data = json.decode(response.body);
-  //     setState(() {
-  //       categoryData = data.map((item) => CategoryData.fromJson(item)).toList();
-  //     });
-  //   } else {
-  //     throw Exception('Failed to load data');
-  //   }
-  // }
   Future<void> fetchData() async {
-    try {
-      final data = await AdminServices.fetchData();
+    final response =
+        await http.get(Uri.parse('http://192.168.1.8:3000/revenue-by-month'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
       setState(() {
-        categoryData = data;
+        categoryData = data.map((item) => CategoryData.fromJson(item)).toList();
       });
-    } catch (e) {
-      // Handle exceptions
-      print('Error fetching data: $e');
+    } else {
+      throw Exception('Failed to load data');
     }
   }
+  // Future<void> fetchData() async {
+  // try {
+  //   final data = await AdminServices.fetchData();
+  //   setState(() {
+  //     categoryData = data;
+  //   });
+  // } catch (e) {
+  //   // Handle exceptions
+  //   print('Error fetching data: $e');
+  // }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -60,14 +54,14 @@ class BarChartCatPercentState extends State<BarChartCatPercent> {
 
 class CategoryData {
   final String name;
-  final double percentage;
+  final double monthlyRevenue;
 
-  CategoryData({required this.name, required this.percentage});
+  CategoryData({required this.name, required this.monthlyRevenue});
 
   factory CategoryData.fromJson(Map<String, dynamic> json) {
     return CategoryData(
-      name: json['name'],
-      percentage: json['percentage'].toDouble(),
+      name: json['month'],
+      monthlyRevenue: json['monthlyRevenue'].toDouble(),
     );
   }
 }
@@ -129,13 +123,13 @@ class PieChart2State extends State<BarChartSample> {
   List<charts.Series<CategoryData, String>> _createBarChartSeries() {
     return [
       charts.Series<CategoryData, String>(
-        id: 'CategoryData',
+        id: 'Revenue-by-moth',
         data: widget.categoryData,
         domainFn: (CategoryData data, _) => data.name,
-        measureFn: (CategoryData data, _) => data.percentage,
+        measureFn: (CategoryData data, _) => data.monthlyRevenue,
         // colorFn: (_, __) => charts.ColorUtil.fromDartColor(categoryColors[0]),
         labelAccessorFn: (CategoryData data, _) =>
-            '${data.percentage.toStringAsFixed(2)}%', // Add percentage label
+            '${data.monthlyRevenue.toString()}', // Add percentage label
       ),
     ];
   }

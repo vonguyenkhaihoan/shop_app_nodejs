@@ -1,13 +1,26 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:shop_app/common/widgets/big_text.dart';
 import 'package:shop_app/common/widgets/custom_button.dart';
 import 'package:shop_app/common/widgets/custom_textfield.dart';
 import 'package:shop_app/config/payment_configurations.dart';
 import 'package:shop_app/constains/global_variables.dart';
 import 'package:shop_app/constains/utils.dart';
 import 'package:shop_app/features/address/services/address_services.dart';
+import 'package:shop_app/models/user_model.dart';
 import 'package:shop_app/provider/user_provider.dart';
 import 'package:flutter/material.dart';
 // import 'package:pay/pay.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+
+// bien theo doi radio
+enum paymentMethod {
+  cash,
+  stripe,
+}
 
 class AddressScreen extends StatefulWidget {
   static const String routeName = '/address';
@@ -27,9 +40,18 @@ class _AddressScreenState extends State<AddressScreen> {
 
   final _addressFormKey = GlobalKey<FormState>();
 
+  paymentMethod _payment = paymentMethod.cash;
+
+  // Declare user variable at the class level
+  late UserProvider userProvider;
+  late User user;
+
   //địa chỉ được sửa dụng
   String addressToBeUsed = "";
   String phoneToBeUsed = "";
+  String selectedPaymentMethod = "";
+
+  Map<String, dynamic>? paymentIntent;
 
   //san pham thanh toan
   // List<PaymentItem> paymentItems = [];
@@ -46,6 +68,10 @@ class _AddressScreenState extends State<AddressScreen> {
     //     status: PaymentItemStatus.final_price,
     //   ),
     // );
+    // Initialize userProvider using Provider.of
+    userProvider = Provider.of<UserProvider>(context, listen: false);
+    // Optionally, you can also initialize the user variable here if needed
+    user = userProvider.user;
   }
 
   @override
@@ -62,7 +88,7 @@ class _AddressScreenState extends State<AddressScreen> {
   //ket qua apple
   void onGooglePayResult(res) {}
 
-  //
+  //thanh toán
   void payPressed(String addressFromProvider, String phoneFromProvider) {
     addressToBeUsed = "";
     phoneToBeUsed = "";
@@ -103,6 +129,148 @@ class _AddressScreenState extends State<AddressScreen> {
         address: addressToBeUsed,
         phone: phoneToBeUsed,
         totalSum: double.parse(widget.totalAmount));
+  }
+
+  //phuong thuc thanh toan
+  Future<void> showPaymentMethodDialog() async {
+    String? selectedPaymentMethod;
+
+    await showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Select Payment Method'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              //nut radio Sign Up
+              ListTile(
+                title: const Text(
+                  'Cash on Delivery',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                leading: Radio(
+                  activeColor: GlobalVariables.secondaryColor,
+                  value: paymentMethod.cash,
+                  groupValue: _payment,
+                  onChanged: (paymentMethod? val) {
+                    setState(() {
+                      _payment = val!;
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
+              ),
+              ListTile(
+                title: const Text(
+                  'Stripe',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                leading: Radio(
+                  activeColor: GlobalVariables.secondaryColor,
+                  value: paymentMethod.stripe,
+                  groupValue: _payment,
+                  onChanged: (paymentMethod? val) {
+                    setState(() {
+                      _payment = val!;
+                      Navigator.pop(context);
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    setState(() {
+      this.selectedPaymentMethod =
+          selectedPaymentMethod ?? this.selectedPaymentMethod;
+    });
+  }
+
+  Future<void> makePayment() async {
+    try {
+      paymentIntent = await createPaymentIntent(widget.totalAmount, 'USD');
+
+      var gpay = const PaymentSheetGooglePay(
+          merchantCountryCode: "US", currencyCode: "USD", testEnv: true);
+
+      //STEP 2: Initialize Payment Sheet
+      await Stripe.instance
+          .initPaymentSheet(
+              paymentSheetParameters: SetupPaymentSheetParameters(
+                  paymentIntentClientSecret: paymentIntent![
+                      'client_secret'], //Gotten from payment intent
+                  style: ThemeMode.light,
+                  merchantDisplayName: 'Abhi',
+                  googlePay: gpay))
+          .then((value) {});
+
+      //STEP 3: Display Payment sheet
+      displayPaymentSheet();
+    } catch (err) {
+      print(err);
+    }
+  }
+
+  // displayPaymentSheet() async {
+  //   try {
+  //     await Stripe.instance.presentPaymentSheet().then((value) {
+  //       print("Payment Successfully");
+  //     });
+  //   } catch (e) {
+  //     print('Flase');
+  //   }
+  // }
+
+  Future<void> displayPaymentSheet() async {
+    try {
+      // Ensure userProvider is initialized before using it
+      if (userProvider != null) {
+        user = userProvider.user;
+      } else {
+        // Handle the case where userProvider is null or not initialized
+        print("UserProvider is null or not initialized");
+        return;
+      }
+
+      await Stripe.instance.presentPaymentSheet().then((value) {
+        print("Payment Successfully");
+        // Call payPressed function here
+        payPressed(user.address, user.phone);
+      });
+    } catch (e, stackTrace) {
+      print('Error in displayPaymentSheet: $e');
+      print(stackTrace);
+    }
+  }
+
+  createPaymentIntent(String amount, String currency) async {
+    try {
+      Map<String, dynamic> body = {
+        'amount': amount,
+        'currency': currency,
+      };
+
+      var response = await http.post(
+        Uri.parse('https://api.stripe.com/v1/payment_intents'),
+        headers: {
+          'Authorization':
+              'Bearer sk_test_51OAz42JmIpBKLti4QMyZe6hvskqMVmZGURDO6qZYb67iItJCm3QpAO2CcwhdNi7xOcf3O0FTtzq3ju37FyQtyZkC00qe3EnRFu',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: body,
+      );
+      return json.decode(response.body);
+    } catch (err) {
+      throw Exception(err.toString());
+    }
   }
 
   @override
@@ -210,6 +378,46 @@ class _AddressScreenState extends State<AddressScreen> {
                 ),
               ),
 
+              SizedBox(height: 10),
+              // Button to show payment method selection dialog
+              GestureDetector(
+                onTap: () async {
+                  showPaymentMethodDialog();
+                },
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                      color: Colors.black,
+                      width: 0.5,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        BigText(
+                          text: "Payment Method: ",
+                          size: 16,
+                        ),
+                        if (_payment == paymentMethod.cash)
+                          BigText(
+                            text: "Cash on Delivery",
+                            size: 16,
+                          )
+                        else if (_payment == paymentMethod.stripe)
+                          BigText(
+                            text: "Stripe",
+                            size: 16,
+                          )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
               /*//applepay
               ApplePayButton(
                 width: double.infinity,
@@ -244,7 +452,14 @@ class _AddressScreenState extends State<AddressScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: CustomButton(
                   text: 'Buy',
-                  onTap: () => payPressed(user.address, user.phone),
+                  onTap: () async {
+                    if (_payment == paymentMethod.cash) {
+                      payPressed(user.address, user.phone);
+                    } else if (_payment == paymentMethod.stripe) {
+                      await makePayment();
+                      // payPressed(user.address, user.phone);
+                    }
+                  },
                   color: Colors.yellow[600],
                 ),
               ),

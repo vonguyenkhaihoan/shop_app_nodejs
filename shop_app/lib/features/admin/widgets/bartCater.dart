@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:charts_flutter_new/flutter.dart' as charts;
+import 'package:shop_app/config/config.dart';
 
 class MonthlyOrdersChart extends StatefulWidget {
   const MonthlyOrdersChart({Key? key}) : super(key: key);
@@ -22,7 +23,7 @@ class _MonthlyOrdersChartState extends State<MonthlyOrdersChart> {
   Future<void> fetchOrdersData() async {
     try {
       final response = await http
-          .get(Uri.parse('http://192.168.88.101:3000/orders-per-month'));
+          .get(Uri.parse(url + '/orders-per-month'));
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body)['data'];

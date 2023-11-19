@@ -82,7 +82,7 @@ class _OrderScreenState extends State<OrderScreen> {
                                           bottomLeft: Radius.circular(20)),
                                       child: Image.network(
                                         orderData.products[0].images[0],
-                                        fit: BoxFit.contain,
+                                        fit: BoxFit.fitHeight,
                                         height: 135,
                                         width: 135,
                                       ),

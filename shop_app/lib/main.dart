@@ -1,3 +1,4 @@
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:shop_app/common/widgets/bottom_bar.dart';
 import 'package:shop_app/constains/global_variables.dart';
 import 'package:shop_app/features/admin/screen/admin_screen.dart';
@@ -9,6 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  //Initialize Flutter Binding
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey =
+      "pk_test_51OAz42JmIpBKLti4fXgYDz7nEKk7fieR3XZcM7eWTxM9NZRPWJ8DZjgBqTBLiO57rnnjI4ehmkLsJTitEpuSoFk500DxQfMkCi";
+
   runApp(MultiProvider(
       providers: [ChangeNotifierProvider(create: (context) => UserProvider())],
       child: const MyApp()));

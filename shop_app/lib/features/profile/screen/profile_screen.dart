@@ -48,13 +48,13 @@ class ProfileScreen extends StatelessWidget {
           child: Column(
             children: [
               // Tiêu đề
-              Text(
-                'Thông tin cá nhân',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              // Text(
+              //   'Thông tin cá nhân',
+              //   style: TextStyle(
+              //     fontSize: 20,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
 
               // Ảnh đại diện
               SizedBox(height: 10),

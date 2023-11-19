@@ -69,6 +69,7 @@ router.get('/admin/total-product', AdminController.totalProduct);
 
 router.get('/api/categoriesPercentage',AdminController.categoriesPercentage);
 
+//tông don hang theo tung thang
 router.get('/orders-per-month', async (req, res) => {
   try {
     const currentYear = new Date().getFullYear();
@@ -104,7 +105,7 @@ router.get('/orders-per-month', async (req, res) => {
   }
 });
 
-
+//tông don hang theo tung thang ket qua sai
 router.get('/order-statistics', async (req, res) => {
   try {
     const currentYear = new Date().getFullYear();
@@ -139,6 +140,81 @@ router.get('/order-statistics', async (req, res) => {
   }
 });
 
+
+// // Định nghĩa API route để tính tổng số tiền bán được của mỗi tháng trong năm hiện tại
+// router.get('/api/sales', async (req, res) => {
+//   const currentYear = new Date().getFullYear();
+
+//   try {
+//     const monthlySales = await OrderModel.aggregate([
+//       {
+//         $match: {
+//           orderedAt: {
+//             $gte: new Date(`${currentYear}-01-01`).getTime(),
+//             $lt: new Date(`${currentYear + 1}-01-01`).getTime(),
+//           },
+//         },
+//       },
+//       {
+//         $group: {
+//           _id: { $month: '$orderedAt' },
+//           totalSales: { $sum: '$totalPrice' },
+//         },
+//       },
+//       {
+//         $sort: {
+//           _id: 1,
+//         },
+//       },
+//     ]);
+
+//     res.json(monthlySales);
+//   } catch (error) {
+//     res.status(500).json({ error: 'Internal Server Error' });
+//   }
+// });
+
+
+// Helper function to get month name from its index
+const getMonthName = (index) => {
+  const months = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  return months[index];
+};
+
+// API endpoint to calculate monthly revenue for the current year
+router.get('/revenue-by-month', async (req, res) => {
+  try {
+    const currentYear = new Date().getFullYear();
+    const orders = await OrderModel.find({
+      orderedAt: {
+        $gte: new Date(`${currentYear}-01-01`).getTime(),
+        $lt: new Date(`${currentYear + 1}-01-01`).getTime(),
+      },
+      status: 0, // Only consider orders with status "1" (adjust as needed)
+    });
+
+    const monthlyRevenue = Array(12).fill(0);
+
+    orders.forEach((order) => {
+      const orderedDate = new Date(order.orderedAt);
+      const month = orderedDate.getMonth();
+      monthlyRevenue[month] += order.totalPrice;
+    });
+
+    const result = monthlyRevenue.map((revenue, index) => ({
+      month: getMonthName(index),
+      monthlyRevenue: revenue,
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Internal Server Error' });
+  }
+});
 
 
 

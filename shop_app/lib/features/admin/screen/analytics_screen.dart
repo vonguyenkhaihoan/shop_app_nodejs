@@ -8,6 +8,7 @@ import 'package:shop_app/features/admin/widgets/detail_card.dart';
 import 'package:charts_flutter_new/flutter.dart' as charts;
 import 'package:flutter/material.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
+import 'package:shop_app/features/admin/widgets/totalRevenum_chart.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -181,6 +182,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       SizedBox(
                         height: 300, // Đặt một chiều cao hợp lý
                         child: MonthlyOrdersChart(),
+                      ),
+
+                      //bieu do don hang theo tung thang
+                      Text(
+                        'Thống kế danh thu theo tháng',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(
+                        height: 300, // Đặt một chiều cao hợp lý
+                        child: TotalRevenueChart(),
                       ),
                     ],
                   ),

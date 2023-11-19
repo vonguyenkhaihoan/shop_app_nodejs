@@ -32,7 +32,7 @@ class AdminProfileScreen extends StatelessWidget {
             children: [
               // Tiêu đề
               Text(
-                'Thông tin cá nhân',
+                'Personal information',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
